@@ -12,9 +12,9 @@ export * from "./models/ParamTypes";
 export * from "./models/PropertyMetadata";
 
 // registries
+export * from "./registries/EndpointRegistry";
 export * from "./registries/MiddlewareRegistry";
 export * from "./registries/ParamRegistry";
-export * from "./registries/FilterRegistry";
 export * from "./registries/PropertyRegistry";
 
 // components
