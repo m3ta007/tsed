@@ -24,11 +24,6 @@ export class ConverterService {
 
   constructor(private injectorService: InjectorService, @Configuration() configuration: Configuration) {
     this.converterSettings = configuration.get<IConverterSettings>("converter") || {};
-
-    if (this.converterSettings.additionalProperties === undefined) {
-      const validationModelStrict = configuration.get<boolean>("validationModelStrict");
-      this.converterSettings.additionalProperties = validationModelStrict || validationModelStrict === undefined ? "error" : "accept";
-    }
   }
 
   /**
