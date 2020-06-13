@@ -1,16 +1,10 @@
 import {ParamMetadata, ParamTypes} from "@tsed/common";
-import {catchError} from "@tsed/core";
 import {expect} from "chai";
-import * as Sinon from "sinon";
-import {QueryParams} from "../decorators/params/queryParams";
 import {ValidationPipe} from "./ValidationPipe";
 
 describe("ValidationPipe", () => {
   it("should return value", async () => {
-    const validate = Sinon.stub();
-    const validator = new ValidationPipe({
-      validate
-    });
+    const validator = new ValidationPipe();
 
     class Test {
     }
@@ -27,26 +21,5 @@ describe("ValidationPipe", () => {
 
     // WHEN
     expect(validator.transform("value", param)).to.deep.eq("value");
-    // @ts-ignore
-    expect(validate).to.have.been.calledWithExactly("value", String, Array);
-  });
-
-  it("should throw an error", async () => {
-    const error = new Error("message");
-    const validator = new ValidationPipe({
-      validate() {
-        throw error;
-      }
-    });
-
-    class Test {
-      test(@QueryParams("param", String) param: string[]) {
-      }
-    }
-
-    // WHEN
-    const actualError = catchError(() => validator.transform("value", ParamMetadata.get(Test, "test", 0)));
-    // @ts-ignore
-    expect(actualError.message).to.eq("message");
   });
 });
