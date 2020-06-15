@@ -211,7 +211,19 @@ describe("Rest", () => {
           .put("/rest/calendars")
           .expect(400)
           .end((err: any, response: any) => {
-            expect(response.error.text).to.eq("Bad request on parameter \"request.body.name\".<br />It should have required parameter 'name'");
+            expect(response.body).to.deep.eq({
+              "message": "Bad request on parameter \"request.body.name\".\nIt should have required parameter 'name'",
+              "status": 400,
+              "name": "REQUIRED_VALIDATION_ERROR",
+              "errors": [{
+                "dataPath": "",
+                "keyword": "required",
+                "message": "It should have required parameter 'name'",
+                "modelName": "body",
+                "params": {"missingProperty": "name"},
+                "schemaPath": "#/required"
+              }]
+            });
             done();
           });
       });
@@ -285,20 +297,23 @@ describe("Rest", () => {
           .expect(400);
 
         // @ts-ignore
-        expect(JSON.parse(response.headers.errors)).to.deep.eq([
-          {
-            dataPath: ".email",
-            keyword: "format",
-            message: "should match format \"email\"",
-            modelName: "UserCreation",
-            params: {
-              format: "email"
-            },
-            schemaPath: "#/properties/email/format"
-          }
-        ]);
-
-        expect(response.text).to.eq("Bad request on parameter \"request.body\".<br />UserCreation.email should match format \"email\". Given value: \"undefined\"");
+        expect(response.body).to.deep.eq({
+          "errors": [
+            {
+              "dataPath": ".email",
+              "keyword": "format",
+              "message": "should match format \"email\"",
+              "modelName": "UserCreation",
+              "params": {
+                "format": "email"
+              },
+              "schemaPath": "#/properties/email/format"
+            }
+          ],
+          "message": "Bad request on parameter \"request.body\".\nUserCreation.email should match format \"email\". Given value: \"undefined\"",
+          "name": "AJV_VALIDATION_ERROR",
+          "status": 400
+        });
       });
 
       it("should return an error when password is empty", async () => {
@@ -313,20 +328,19 @@ describe("Rest", () => {
             .expect(400)
         ]);
 
-        expect(response.text).to.eq(
-          "Bad request on parameter \"request.body\".<br />UserCreation.password should NOT be shorter than 6 characters. Given value: \"undefined\""
-        );
-
-        expect(JSON.parse(response.headers.errors)).to.deep.eq([
-          {
-            keyword: "minLength",
-            dataPath: ".password",
-            schemaPath: "#/properties/password/minLength",
-            params: {limit: 6},
-            message: "should NOT be shorter than 6 characters",
-            modelName: "UserCreation"
-          }
-        ]);
+        expect(response.body).to.deep.eq({
+          "name": "AJV_VALIDATION_ERROR",
+          "message": "Bad request on parameter \"request.body\".\nUserCreation.password should NOT be shorter than 6 characters. Given value: \"undefined\"",
+          "status": 400,
+          "errors": [{
+            "keyword": "minLength",
+            "dataPath": ".password",
+            "schemaPath": "#/properties/password/minLength",
+            "params": {"limit": 6},
+            "message": "should NOT be shorter than 6 characters",
+            "modelName": "UserCreation"
+          }]
+        });
       });
 
       it("should allow creation with data", async () => {
@@ -405,9 +419,15 @@ describe("Rest", () => {
         .get("/rest/errors/custom-bad-request")
         .expect(400)
         .end((err: any, response: any) => {
-          expect(response.headers.errors).to.eq("[\"test\"]");
+          expect(response.body).to.deep.eq({
+            "errors": [
+              "test"
+            ],
+            "message": "Custom Bad Request",
+            "name": "CUSTOM_BAD_REQUEST",
+            "status": 400
+          });
           expect(response.headers["x-header-error"]).to.eq("deny");
-          expect(response.text).to.eq("Custom Bad Request");
           done();
         });
     });
@@ -417,20 +437,19 @@ describe("Rest", () => {
         .post("/rest/errors/required-param")
         .expect(400)
         .end((err: any, response: any) => {
-          expect(response.text).to.eq("Bad request on parameter \"request.body.name\".<br />It should have required parameter 'name'");
-
-          expect(JSON.parse(response.headers.errors)).to.deep.eq([
-            {
-              dataPath: "",
-              keyword: "required",
-              message: "It should have required parameter 'name'",
-              modelName: "body",
-              params: {
-                missingProperty: "name"
-              },
-              schemaPath: "#/required"
-            }
-          ]);
+          expect(response.body).to.deep.eq({
+            "name": "REQUIRED_VALIDATION_ERROR",
+            "message": "Bad request on parameter \"request.body.name\".\nIt should have required parameter 'name'",
+            "status": 400,
+            "errors": [{
+              "dataPath": "",
+              "keyword": "required",
+              "message": "It should have required parameter 'name'",
+              "modelName": "body",
+              "params": {"missingProperty": "name"},
+              "schemaPath": "#/required"
+            }]
+          });
           done();
         });
     });
@@ -440,22 +459,19 @@ describe("Rest", () => {
         .post("/rest/errors/required-model")
         .expect(400)
         .end((err: any, response: any) => {
-          expect(response.text).to.eq(
-            "Bad request on parameter \"request.body\".<br />CustomModel should have required property 'name'. Given value: \"undefined\""
-          );
-
-          expect(JSON.parse(response.headers.errors)).to.deep.eq([
-            {
-              dataPath: "",
-              keyword: "required",
-              message: "should have required property 'name'",
-              modelName: "CustomModel",
-              params: {
-                missingProperty: "name"
-              },
-              schemaPath: "#/required"
-            }
-          ]);
+          expect(response.body).to.deep.eq({
+            "name": "AJV_VALIDATION_ERROR",
+            "message": "Bad request on parameter \"request.body\".\nCustomModel should have required property 'name'. Given value: \"undefined\"",
+            "status": 400,
+            "errors": [{
+              "keyword": "required",
+              "dataPath": "",
+              "schemaPath": "#/required",
+              "params": {"missingProperty": "name"},
+              "message": "should have required property 'name'",
+              "modelName": "CustomModel"
+            }]
+          });
           done();
         });
     });
@@ -466,7 +482,19 @@ describe("Rest", () => {
         .send({})
         .expect(400)
         .end((err: any, response: any) => {
-          expect(response.text).to.eq("Bad request on parameter \"request.body\".<br />CustomPropModel should have required property 'role_item'. Given value: \"undefined\"");
+          expect(response.body).to.deep.eq({
+            "name": "AJV_VALIDATION_ERROR",
+            "message": "Bad request on parameter \"request.body\".\nCustomPropModel should have required property 'role_item'. Given value: \"undefined\"",
+            "status": 400,
+            "errors": [{
+              "keyword": "required",
+              "dataPath": "",
+              "schemaPath": "#/required",
+              "params": {"missingProperty": "roleItem"},
+              "message": "should have required property 'role_item'",
+              "modelName": "CustomPropModel"
+            }]
+          });
           done();
         });
     });
@@ -476,7 +504,7 @@ describe("Rest", () => {
         .get("/rest/errors/error")
         .expect(500)
         .end((err: any, response: any) => {
-          expect(response.text).to.eq("Internal Error");
+          expect(response.body).to.eq("InternalServerError");
           done();
         });
     });
@@ -486,9 +514,15 @@ describe("Rest", () => {
         .get("/rest/errors/custom-internal-error")
         .expect(500)
         .end((err: any, response: any) => {
-          expect(response.headers.errors).to.eq("[\"test\"]");
+          expect(response.body).to.deep.eq({
+            "errors": [
+              "test"
+            ],
+            "message": "My custom error",
+            "name": "CUSTOM_INTERNAL_SERVER_ERROR",
+            "status": 500
+          });
           expect(response.headers["x-header-error"]).to.eq("deny");
-          expect(response.text).to.eq("My custom error");
           done();
         });
     });
